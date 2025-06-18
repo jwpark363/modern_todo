@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useForm } from "react-hook-form";
 import styled from "styled-components";
-import { AddNewTodo, ThemeAtom, TodoAtom, type ThemeStatus } from "../atoms";
+import { AddNewTodo, SelectedCategoryAtom, ThemeAtom, TodoAtom, TodoStatus, type ThemeStatus } from "../atoms";
 interface ITheme{
   $themeprop:ThemeStatus
 }
@@ -36,6 +36,7 @@ interface IForm{
 }
 export default function(){
     const setTodos = useSetAtom(TodoAtom);
+    const category = useAtomValue(SelectedCategoryAtom);
     const theme = useAtomValue(ThemeAtom);
     const { register,
         formState: { errors },
@@ -45,7 +46,8 @@ export default function(){
 
     const onSubmit = (data: IForm) =>
     {
-        setTodos(prev => [...prev, AddNewTodo(data.todo)]);
+        setTodos(prev => [...prev, AddNewTodo(data.todo, 
+          category === TodoStatus.DOING ? TodoStatus.TODO : category)]);
         setValue("todo","");
     }
     return (<>

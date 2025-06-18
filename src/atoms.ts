@@ -1,5 +1,6 @@
 import { atomWithStorage } from "jotai/utils";
 import { atom, type Getter } from "jotai";
+import type { Setter } from "jotai";
 
 export enum TodoStatus{
     "TODO"="TODO",
@@ -16,11 +17,11 @@ export interface ITodo{
     updateAt:Date,
     tag:string[]
 }
-export const AddNewTodo = (todo:string): ITodo => {
+export const AddNewTodo = (todo:string, status:TodoStatus): ITodo => {
     return {
         id: Date.now(),
         todo,
-        status: TodoStatus.TODO,
+        status: status,
         createAt: new Date(),
         updateAt: new Date(),
         tag:[]
@@ -43,5 +44,17 @@ export const FilteredTodoAtom = atom((get: Getter) => {
                             todo.status === TodoStatus.DOING);
     else return todos.filter(todo => todo.status === category);
 })
+export const TodoHandleAtom = atom(
+    (get:Getter) => {
+        return get(TodoAtom);
+    },
+    (_,set:Setter,update:ITodo) =>{
+        set(
+            TodoAtom, 
+            (todos) => todos.map(todo => todo.id === update.id ? update : todo)
+        )
+    },
+)
+
 export type ThemeStatus = 'light' | 'dark';
 export const ThemeAtom = atomWithStorage<ThemeStatus>('modern-theme',"light");

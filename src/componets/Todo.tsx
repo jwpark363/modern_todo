@@ -1,8 +1,9 @@
 import styled from "styled-components";
-import { TodoAtom, TodoStatus, type ITodo } from "../atoms";
-import StatusIcon from "./StatusIcon";
 import { useAtom } from "jotai";
 import { useForm } from "react-hook-form";
+import { TodoAtom, TodoHandleAtom } from "../atoms";
+import { type ITodo, TodoStatus } from "../atoms"; 
+import StatusIcon from "./StatusIcon";
 
 const Boxes = styled.div`
     min-width: 380px;
@@ -59,22 +60,30 @@ interface IForm{
 }
 export default function Todo(todo:ITodo){
     const [todos, setTodos] = useAtom(TodoAtom);
+    const [_todos, _setTodos] = useAtom(TodoHandleAtom);
     const {register, handleSubmit, setValue} = useForm<IForm>()
     const setTag = (data:IForm) => {
         //tag length >= 2 then remove last element
-        if(todo.tag.length >= 2) todo.tag.pop();
-        setTodos(prev => prev.map(item => 
-            item.id === todo.id &&
-            todo.tag.findIndex(tagItem => tagItem === data.tag) == -1 ?
-            {...item, tag:[data.tag,...item.tag]} : item));
+        const newTodo = {...todo};
+        if(newTodo.tag.length >= 2)
+            newTodo.tag.pop();
+        if(newTodo.tag.indexOf(data.tag) == -1)
+            newTodo.tag = [data.tag, ...newTodo.tag];
+        _setTodos(newTodo);
         setValue("tag","")
+        // if(todo.tag.length >= 2) todo.tag.pop();
+        // setTodos(prev => prev.map(item => 
+        //     item.id === todo.id &&
+        //     todo.tag.findIndex(tagItem => tagItem === data.tag) == -1 ?
+        //     {...item, tag:[data.tag,...item.tag]} : item));
     }
     const deleteTodos = (id:number) => {
         const index = todos.findIndex(item => item.id === id);
         setTodos(prev => [...prev.slice(0,index), ...prev.slice(index+1)]);
     }
     const updateTodos = (id:number, status:TodoStatus) => {
-        setTodos(prev => prev.map(item => item.id === id ? {...item, status:status} : item));
+        _setTodos({...todo, status:status});
+        // setTodos(prev => prev.map(item => item.id === id ? {...item, status:status} : item));
     }
     return <Boxes>
         <FunctionBox>
