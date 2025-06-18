@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage":"https://jwpark363.github.io/modern_todo",
+  "homepage": "https://jwpark363.github.io/modern_todo",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -12,6 +12,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "gh-pages": "^6.3.0",
     "jotai": "^2.12.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

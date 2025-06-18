@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import Todo from "./componets/Todo";
-import { TodoAtom, TodoStatus, type ITodo } from "./atoms";
-import { useAtomValue } from "jotai";
+import { FilteredTodoAtom, SelectedCategoryAtom, TagAtom, TodoStatus } from "./atoms";
+import { useAtom, useAtomValue } from "jotai";
 import { useEffect, useState } from "react";
 import FilterIcon from "./componets/FilterIcon";
 import NewTodo from "./componets/NewTodo";
@@ -65,17 +65,6 @@ interface IFilterTag{
   tag:string,
   isactive:boolean
 }
-const initFilterTags = (todos:ITodo[]) => {
-  const AllTags : string[]= [];
-    for(let i = 0 ; i < todos.length ; i++){
-      for(let j = 0 ; j < todos[i].tag.length ; j++){
-        if(AllTags.findIndex(tag => tag == todos[i].tag[j]) == -1){
-          AllTags.push(todos[i].tag[j]);
-        }
-      }
-    }
-    return AllTags.map(tag => ({tag: tag, isactive: true}));
-}
 const includeTagsInFilter = (tags:string[], filters:IFilterTag[]) => {
   if(tags.length === 0) return true;
   return filters
@@ -83,8 +72,9 @@ const includeTagsInFilter = (tags:string[], filters:IFilterTag[]) => {
   .map(item => item.tag)
   .map(item => tags.includes(item)).includes(true)};
 export default function TodoList(){
-    const todos = useAtomValue(TodoAtom);
-    const [tabStatus, setStatus] = useState<TodoStatus>(TodoStatus.DOING);
+    const filtedTodos = useAtomValue(FilteredTodoAtom);
+    const [selectedTab, setTab] = useAtom(SelectedCategoryAtom);
+    const categories = useAtomValue(TagAtom);
     const [toggleFilter, setFilter] = useState(false);
     const [filterTags, setFilterTags] = useState<IFilterTag[]>([]);
     const changeFilterTags = (filterTag:IFilterTag) => {
@@ -92,8 +82,8 @@ export default function TodoList(){
         item.tag === filterTag.tag ? {...item, isactive:!item.isactive} : item));
     }
     useEffect(() => {
-      setFilterTags(initFilterTags(todos))
-    },[todos])
+      setFilterTags(categories.map(tag => ({tag: tag, isactive: true})));
+    },[categories])
     return (<MainBox>
       <NewTodo />
     <TodoBoxes>
@@ -103,16 +93,13 @@ export default function TodoList(){
         </FilterBox>}
       <TabBox>
         {Object.values(TodoStatus).map((status,i) => status === TodoStatus.TODO ? null : <Tab key={i}
-        onClick={() => setStatus(status)} $isactive={tabStatus === status}>
+        onClick={() => setTab(status)} $isactive={selectedTab === status}>
           {status === TodoStatus.DOING ? 'TODO-DOING' : status}</Tab>)}
         <TabIcon onClick={()=>setFilter(!toggleFilter)}><FilterIcon filter={toggleFilter}/></TabIcon>
       </TabBox>
       <Todos>
-        {tabStatus === TodoStatus.DOING ? todos.filter(todo => 
-          (todo.status === TodoStatus.TODO || todo.status === TodoStatus.DOING) && includeTagsInFilter(todo.tag,filterTags))
-          .map(todo => <Todo key={todo.id} {...todo}/>) : 
-          todos.filter(todo => todo.status === tabStatus && includeTagsInFilter(todo.tag,filterTags))
-            .map(todo => <Todo key={todo.id} {...todo}/>)}
+        {filtedTodos.filter(todo => includeTagsInFilter(todo.tag, filterTags))
+          .map(todo => <Todo key={todo.id} {...todo}/>)}
       </Todos>
     </TodoBoxes>
   </MainBox>)
